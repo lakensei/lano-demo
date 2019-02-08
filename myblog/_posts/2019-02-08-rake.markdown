@@ -1,0 +1,54 @@
+---
+layout: post
+title:  "任务管理工具rack"
+date:   2019-02-07 17:21:00 +0800
+categories: jekyll ruby
+---
+
+创建 rakefile/rakefile.rb/Rakefile/Rakefile.rb的文件  
+命令行进入到文件目录 运行rack --task /rack -T 查看定义的任务  
+rack 不置顶任务时执行默认方法  task :default => [方法名]  
+ENV["参数名"] 可接收执行任务时传的参数  
+Rake::Task["任务名"].invoke 在任务中调用其他任务  
+
+{% highlight ruby %}
+namespace :day do   #命令空间区分任务
+	task :turn_off_alarm do
+	 puts "Turned off alarm."
+	end
+
+	task :groom_myself do
+	 puts "Brushed teeth."
+	 puts "Showered."
+	 puts "Shaved."
+	end
+
+	desc "Make coffee" #描述任务
+	task :make_coffee do
+	 cups = ENV["COFFEE_CUPS"] || 2 #不赋值则默认2
+	 puts "Made #{cups} cups of coffee. Shakes are gone."
+	end
+
+	task :walk_dog do
+	 puts "Dog walked."
+	end
+
+	task :ready_for_the_day => [:turn_off_alarm, :groom_myself, :make_coffee] do
+	 puts "Ready for the day!" #按顺序执行任务再打印
+	end
+end
+
+desc "todays tasks"
+task :today do
+	#Rake::Task["day:ready_for_the_day"].invoke #已执行make_coffee 不会重复执行
+	Rake::Task["day:make_coffee"].invoke
+	Rake::Task["day:ready_for_the_day"].invoke  #该任务中不会执行make_coffee任务
+end
+task :default => [:today] #默认方法
+
+
+# rake 执行默认方法
+# rake --tasks 查看描述了任务的任务
+# rake day:make_coffee COFFEE_CUPS=5  执行make_coffee任务并赋值
+# rake today 执行today任务
+{% endhighlight %}  
